@@ -8,9 +8,14 @@
   },
   "devDependencies": {
     "eslint": "8.38.0",
-    "eslint-config-htmlacademy": "9.0.0"
+    "eslint-config-htmlacademy": "9.0.0",
+    "webpack": "5.102.1",
+    "webpack-cli": "6.0.1"
   },
   "engines": {
     "node": "20"
+  },
+  "dependencies": {
+    "copy-webpack-plugin": "^13.0.1"
   }
 }
