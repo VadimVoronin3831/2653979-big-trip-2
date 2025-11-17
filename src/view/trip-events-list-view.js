@@ -4,7 +4,7 @@ function createListControlsTemplate() {
   return '<ul class="trip-events__list"></ul>';
 }
 
-export default class NewListEventsView {
+export default class ListEventsView {
   getTemplate() {
     return createListControlsTemplate();
   }

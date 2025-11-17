@@ -1,13 +1,13 @@
-
 import MainPresenter from './presenters/main-presenter';
 
-const siteHeader = document.querySelector('.page-header');
-const siteMain = document.querySelector('.page-main');
+const headerElement = document.querySelector('.page-header');
+const mainElement = document.querySelector('.page-main');
+const filtersElement = headerElement.querySelector('.trip-controls__filters');
+const eventsElement = mainElement.querySelector('.trip-events');
 
 const mainPresenter = new MainPresenter({
-  headerContainer: siteHeader.querySelector('.trip-controls__filters'),
-  mainContainer: siteMain.querySelector('.trip-events'),
-  eventContainer: siteMain.querySelector('.trip-events')
+  headerContainer: filtersElement,
+  mainContainer: eventsElement,
 });
 
 mainPresenter.init();

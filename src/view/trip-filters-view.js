@@ -1,6 +1,6 @@
 import { createElement } from '../render.js';
 
-function createListControlsTemplate() {
+function createListFiltersTemplate() {
   return `
               <form class="trip-filters" action="#" method="get">
                 <div class="trip-filters__filter">
@@ -28,9 +28,9 @@ function createListControlsTemplate() {
               `;
 }
 
-export default class NewListControlView {
+export default class ListControlView {
   getTemplate() {
-    return createListControlsTemplate();
+    return createListFiltersTemplate();
   }
 
   getElement() {

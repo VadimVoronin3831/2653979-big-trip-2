@@ -47,7 +47,7 @@ function createNewEventTemplate() {
               `;
 }
 
-export default class NewEventView {
+export default class EventView {
   getTemplate() {
     return createNewEventTemplate();
   }
