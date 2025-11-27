@@ -8,7 +8,6 @@ export function createOffer(){
   const offersForType = TYPES[randomType];
 
   return {
-    id: crypto.randomUUID(),
     type: randomType,
     offers: offersForType
   };

@@ -5,7 +5,7 @@ function getRandomArrayElement(items) {
 }
 
 function getRandomNumber(min, max) {
-  return Math.floor(Math.random(min * max));
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function formatDuration(startDate, endDate) {
@@ -22,13 +22,13 @@ function formatDuration(startDate, endDate) {
 
   if (days > 0) {
     return `${days.toString().padStart(2, '0')}D ${hours.toString().padStart(2, '0')}H ${minutes.toString().padStart(2, '0')}M`;
-  } else if (hours > 0) {
+  }
+  if (hours > 0) {
     return minutes === 0
       ? `${hours.toString().padStart(2, '0')}H 00M`
       : `${hours.toString().padStart(2, '0')}H ${minutes.toString().padStart(2, '0')}M`;
-  } else {
-    return `${minutes}M`;
   }
+  return `${minutes}M`;
 }
 
 function convertDate(startDate, endDate) {

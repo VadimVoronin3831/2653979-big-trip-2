@@ -1,11 +1,15 @@
-import {CITIES, DESCRIPTION} from './const';
-import {getRandomArrayElement, getRandomNumber} from '../utils';
+import { CITIES, DESCRIPTION, IMG_DESCRIPTION } from './const';
+import { getRandomArrayElement, getRandomNumber } from '../utils';
 
-export function createDestination(){
+export function createDestination(destinationID) {
   return {
-    id: crypto.randomUUID(),
+    id: destinationID === '' ? crypto.randomUUID() : destinationID,
     description: getRandomArrayElement(DESCRIPTION),
-    desctinationImg: `https://loremflickr.com/248/152?random=${getRandomNumber(0, 10)}`,
-    city: getRandomArrayElement(CITIES),
+    name: getRandomArrayElement(CITIES),
+    pictures: [{
+      src: `https://loremflickr.com/248/152?random=${getRandomNumber(0, 10)}`,
+      description: getRandomArrayElement(IMG_DESCRIPTION),
+    }
+    ]
   };
 }
