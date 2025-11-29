@@ -1,16 +1,18 @@
 import { createElement } from '../render.js';
+import { ALL_TYPES } from '../const.js';
+import { formatDate } from '../utils.js';
 
-function createNewEventFormTemplate(point) {
-  const { destination, offer, basePrice, dateFrom, dateTo, type, offers: selectedOfferIds } = point;
+function createEventFormTemplate(point) {
+  const { offer, basePrice, dateFrom, dateTo, type, offers: selectedOfferIds, allDestinations } = point;
+  const destination = allDestinations.find((dest) => dest.id === point.destination);
 
-  const allOffers = offer?.offers || [];
+  const allOffers = offer.offers || [];
   const selectedOffers = selectedOfferIds || [];
 
   return `
     <li class="trip-events__item">
       <form class="event event--edit" action="#" method="post">
         <header class="event__header">
-          <!-- остальная часть шапки без изменений -->
           <div class="event__type-wrapper">
             <label class="event__type  event__type-btn" for="event-type-toggle-1">
               <span class="visually-hidden">Choose event type</span>
@@ -21,7 +23,7 @@ function createNewEventFormTemplate(point) {
             <div class="event__type-list">
               <fieldset class="event__type-group">
                 <legend class="visually-hidden">Event type</legend>
-                ${createEventTypesList(type)}
+                ${createEventTypesListTemplate(type)}
               </fieldset>
             </div>
           </div>
@@ -30,9 +32,9 @@ function createNewEventFormTemplate(point) {
             <label class="event__label  event__type-output" for="event-destination-1">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination?.name || ''}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.name || ''}" list="destination-list-1">
             <datalist id="destination-list-1">
-              ${createDestinationsList(point.destinations)}
+              ${createDestinationsListTemplate(allDestinations)}  <!-- весь массив для списка -->
             </datalist>
           </div>
 
@@ -63,26 +65,35 @@ function createNewEventFormTemplate(point) {
             <section class="event__section  event__section--offers">
               <h3 class="event__section-title  event__section-title--offers">Offers</h3>
               <div class="event__available-offers">
-                ${createOffersList(allOffers, selectedOffers)}
+                ${createOffersListTemplate(allOffers, selectedOffers)}
               </div>
             </section>
           ` : ''}
 
-          ${destination?.description ? `
-            <section class="event__section  event__section--destination">
-              <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-              <p class="event__destination-description">${destination.description}</p>
-            </section>
-          ` : ''}
-        </section>
+${destination ? `
+  <section class="event__section  event__section--destination">
+    <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+    ${destination.description ? `
+      <p class="event__destination-description">${destination.description}</p>
+    ` : ''}
+    ${destination.pictures && destination.pictures.length > 0 ? `
+      <div class="event__photos-container">
+        <div class="event__photos-tape">
+          ${destination.pictures.map((picture) =>
+    `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`
+  ).join('')}
+        </div>
+      </div>
+    ` : ''}
+  </section>
+` : ''}
       </form>
     </li>
   `;
 }
-function createEventTypesList(currentType) {
-  const types = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
+function createEventTypesListTemplate(currentType) {
 
-  return types.map((type) => `
+  return ALL_TYPES.map((type) => `
     <div class="event__type-item">
       <input id="event-type-${type}-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="${type}" ${type === currentType ? 'checked' : ''}>
       <label class="event__type-label event__type-label--${type}" for="event-type-${type}-1">${type.charAt(0).toUpperCase() + type.slice(1)}</label>
@@ -90,13 +101,13 @@ function createEventTypesList(currentType) {
   `).join('');
 }
 
-function createDestinationsList(destinations) {
-  return destinations?.map((dest) =>
+function createDestinationsListTemplate(destinations) {
+  return destinations.map((dest) =>
     `<option value="${dest.name}"></option>`
   ).join('') || '';
 }
 
-function createOffersList(allOffers, selectedOfferIds) {
+function createOffersListTemplate(allOffers, selectedOfferIds) {
   return allOffers.map((offer) => {
     const isChecked = selectedOfferIds.includes(offer.id);
     return `
@@ -117,25 +128,13 @@ function createOffersList(allOffers, selectedOfferIds) {
   }).join('');
 }
 
-function formatDate(dateString) {
-  const date = new Date(dateString);
-
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = String(date.getFullYear()).slice(-2);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-
-  return `${day}/${month}/${year} ${hours}:${minutes}`;
-}
-
 export default class EventFormView {
-  constructor({ point }) {
-    this.point = point;
+  constructor(pointData) {
+    this.point = pointData;
   }
 
   getTemplate() {
-    return createNewEventFormTemplate(this.point);
+    return createEventFormTemplate(this.point);
   }
 
   getElement() {

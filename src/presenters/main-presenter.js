@@ -23,15 +23,12 @@ export default class MainPresenter {
     render(eventsComponent, this.mainContainer);
 
     this.points.forEach((point) => {
-      const destination = this.destinations.find((dest) => dest.id === point.destination);
       const offer = this.offers.find((off) => off.type === point.type);
 
       render(new EventFormView({
-        point: {
-          ...point,
-          destination,
-          offer
-        }
+        ...point,
+        offer,
+        allDestinations: this.destinations,
       }), eventsComponent.getElement());
     });
   }

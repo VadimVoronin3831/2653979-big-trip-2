@@ -27,8 +27,4 @@ export default class PointModel {
   getOffers() {
     return this.offers;
   }
-
-  getAllDestinations() {
-    return this.destinations;
-  }
 }
