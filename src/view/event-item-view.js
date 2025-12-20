@@ -1,38 +1,32 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view';
+import dayjs from 'dayjs';
+import { convertDate } from '../utils.js';
 
-function createEventTemplate() {
+function createEventTemplate(point) {
+  const { offer, basePrice, dateFrom, dateTo, type, offers: selectedOfferIds, allDestinations } = point;
+  const destination = allDestinations.find((dest) => dest.id === point.destination);
+
   return `
             <li class="trip-events__item">
               <div class="event">
                 <time class="event__date" datetime="2019-03-18">MAR 18</time>
                 <div class="event__type">
-                  <img class="event__type-icon" width="42" height="42" src="img/icons/flight.png" alt="Event type icon">
+                  <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event ${type} icon">
                 </div>
-                <h3 class="event__title">Flight Chamonix</h3>
+                <h3 class="event__title">${type} ${destination.name}</h3>
                 <div class="event__schedule">
                   <p class="event__time">
-                    <time class="event__start-time" datetime="2019-03-18T12:25">12:25</time>
+                    <time class="event__start-time" datetime="${dayjs(dateFrom).format('YYYY-MM-DDTHH:mm:ss')}">${dayjs(dateFrom).format('HH:mm')}</time>
                     &mdash;
-                    <time class="event__end-time" datetime="2019-03-18T13:35">13:35</time>
+                    <time class="event__end-time" datetime="${dayjs(dateTo).format('YYYY-MM-DDTHH:mm:ss')}">${dayjs(dateTo).format('HH:mm')}</time>
                   </p>
-                  <p class="event__duration">01H 10M</p>
+                  <p class="event__duration">${convertDate(dateFrom, dateTo)}</p>
                 </div>
                 <p class="event__price">
-                  &euro;&nbsp;<span class="event__price-value">160</span>
+                  &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
                 </p>
                 <h4 class="visually-hidden">Offers:</h4>
-                <ul class="event__selected-offers">
-                  <li class="event__offer">
-                    <span class="event__offer-title">Add luggage</span>
-                    &plus;&euro;&nbsp;
-                    <span class="event__offer-price">50</span>
-                  </li>
-                  <li class="event__offer">
-                    <span class="event__offer-title">Switch to comfort</span>
-                    &plus;&euro;&nbsp;
-                    <span class="event__offer-price">80</span>
-                  </li>
-                </ul>
+                ${createOffers(offer.offers, selectedOfferIds)}
                 <button class="event__favorite-btn" type="button">
                   <span class="visually-hidden">Add to favorite</span>
                   <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
@@ -47,20 +41,40 @@ function createEventTemplate() {
               `;
 }
 
-export default class EventView {
-  getTemplate() {
-    return createEventTemplate();
+function createOffers(allOffers, selectedOfferIds) {
+  if (selectedOfferIds.lenght === 0) {
+    return '';
   }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
+  return `<ul class="event__selected-offers">
+  ${allOffers.map((offer) => {
+    const isChecked = selectedOfferIds.includes(offer.id);
+    if (isChecked) {
+      return `
+        <li class="event__offer"><span class="event__offer-title">${offer.title}&plus;&euro;&nbsp;<span class="event__offer-price">${offer.price}</span></li>
+        `;
     }
-    return this.element;
+  }).join('')}
+  </ul>
+  `;
+}
+
+export default class EventItemView extends AbstractView {
+  #handleClick = null;
+  #points = [];
+
+  #openFormHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleClick();
+  };
+
+  constructor(pointData, events) {
+    super();
+    this.#points = pointData;
+    this.#handleClick = events.onClick;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#openFormHandler);
   }
 
-  removeElement() {
-    this.element = null;
+  get template() {
+    return createEventTemplate(this.#points);
   }
-
 }

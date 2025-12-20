@@ -1,13 +1,10 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view';
 import { ALL_TYPES } from '../const.js';
 import { formatDate } from '../utils.js';
 
 function createEventFormTemplate(point) {
   const { offer, basePrice, dateFrom, dateTo, type, offers: selectedOfferIds, allDestinations } = point;
   const destination = allDestinations.find((dest) => dest.id === point.destination);
-
-  const allOffers = offer.offers || [];
-  const selectedOffers = selectedOfferIds || [];
 
   return `
     <li class="trip-events__item">
@@ -61,11 +58,11 @@ function createEventFormTemplate(point) {
           </button>
         </header>
         <section class="event__details">
-          ${allOffers.length > 0 ? `
+          ${offer.offers.length > 0 ? `
             <section class="event__section  event__section--offers">
               <h3 class="event__section-title  event__section-title--offers">Offers</h3>
               <div class="event__available-offers">
-                ${createOffersListTemplate(allOffers, selectedOffers)}
+                ${createOffersListTemplate(offer.offers, selectedOfferIds)}
               </div>
             </section>
           ` : ''}
@@ -128,23 +125,24 @@ function createOffersListTemplate(allOffers, selectedOfferIds) {
   }).join('');
 }
 
-export default class EventFormView {
-  constructor(pointData) {
-    this.point = pointData;
+export default class EventFormView extends AbstractView {
+  #points = [];
+  #handleClick = null;
+  #closeFormHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleClick();
+  };
+
+  constructor(pointData, events) {
+    super();
+    this.#points = pointData;
+    this.#handleClick = events.onClick;
+    this.element.querySelector('.event__save-btn').addEventListener('click', this.#closeFormHandler);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeFormHandler);
   }
 
-  getTemplate() {
-    return createEventFormTemplate(this.point);
-  }
+  get template() {
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
+    return createEventFormTemplate(this.#points);
   }
 }
