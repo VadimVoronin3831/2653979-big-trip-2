@@ -5,7 +5,9 @@ import PointPresenter from '../presenters/point-rpesenter.js';
 import TripInfoView from '../view/trip-info-view.js';
 
 import { render, replace } from '../framework/render.js';
-import { generateFilter } from '../utils.js';
+import { generateFilter, filter } from '../utils.js';
+import { FILTER_TYPES } from '../const.js';
+
 export default class MainPresenter {
   #headerContainer = null;
   #mainContainer = null;
@@ -16,8 +18,9 @@ export default class MainPresenter {
   #offers = [];
   #pointPresenters = new Map();
   #filters = [];
-  #currentFilterType = 'everything';
-  #totalPrice = 0;
+  #currentFilterType = FILTER_TYPES.EVERYTHING;
+  #tripFilterElement = null;
+  #tripInfoComponent = null;
 
   constructor({ headerContainer, mainContainer, pointModel }) {
     this.#headerContainer = headerContainer;
@@ -26,21 +29,42 @@ export default class MainPresenter {
     this.#destinations = [...pointModel.getDestinations()];
     this.#offers = [...pointModel.getOffers()];
     this.#filters = generateFilter(this.#points);
+    this.#tripFilterElement = this.#headerContainer.querySelector('.trip-controls__filters');
   }
 
-  #replacePointsByFilter() {
-    replace(this.#eventsComponents, this.#eventsComponents);
-  }
-
-  #handleFilterChange = () => {
-    this.#replacePointsByFilter();
+  #handleFilterChange = (currentFilter) => {
+    this.#currentFilterType = currentFilter;
+    const filterPoints = filter[currentFilter](this.#points);
+    this.#eventsComponents.clearElement();
+    this.#updateTripInfo(filterPoints);
+    const tripList = this.#eventsComponents.element;
+    filterPoints.forEach((point) => {
+      this.#renderPoint(point, tripList);
+    });
   };
+
+  #updateTripInfo(points) {
+    const newTripInfoComponent = new TripInfoView(points, this.#destinations);
+    if (this.#tripInfoComponent === null) {
+      render(newTripInfoComponent, this.#headerContainer, 'afterbegin');
+      this.#tripInfoComponent = newTripInfoComponent;
+    } else {
+      replace(newTripInfoComponent, this.#tripInfoComponent);
+      this.#tripInfoComponent = newTripInfoComponent;
+    }
+  }
 
   #renderPoint(point, tripList) {
     const offer = this.#offers.find((off) => off.type === point.type);
+    const destination = this.#destinations.find((dest) => dest.id === point.destination);
+
     const pointPresenter = new PointPresenter({
-      point: { ...point, offer },
-      destinations: this.#destinations,
+      point: {
+        ...point,
+        offer,
+        destination
+      },
+      allDestinations: this.#destinations,
       container: tripList,
     });
 
@@ -51,7 +75,6 @@ export default class MainPresenter {
   #renderPoints(tripList) {
     this.#points.forEach((point) => {
       this.#renderPoint(point, tripList);
-      this.#totalPrice += point.basePrice;
     });
   }
 
@@ -60,8 +83,8 @@ export default class MainPresenter {
     this.#eventsComponents = new ListEventsView();
     render(this.#eventsComponents, this.#mainContainer);
     this.#renderPoints(this.#eventsComponents.element);
+    this.#updateTripInfo(this.#points);
 
-    render(new TripInfoView(this.#totalPrice), this.#headerContainer, 'afterbegin');
-    render(new ListFiltersView(this.#filters, this.#currentFilterType, { onFilterChange: this.#handleFilterChange }), this.#headerContainer.querySelector('.trip-controls__filters'));
+    render(new ListFiltersView(this.#filters, this.#currentFilterType, this.#handleFilterChange), this.#tripFilterElement);
   }
 }

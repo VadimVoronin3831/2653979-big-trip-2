@@ -1,10 +1,6 @@
 import AbstractView from '../framework/view/abstract-view';
 
 function createListFiltersTemplate(filters, currentFilterType) {
-  return createFilter(filters, currentFilterType);
-}
-
-function createFilter(filters, currentFilterType) {
   if (!filters) {
     return '';
   }
@@ -42,7 +38,7 @@ export default class ListControlView extends AbstractView {
     super();
     this.#filters = filters;
     this.#currentFilter = currentFilterType;
-    this.#handleFilterChange = events.onFilterChange;
+    this.#handleFilterChange = events;
 
     this.element.addEventListener('change', this.#filterChangeHandler);
   }
