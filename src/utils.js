@@ -91,8 +91,101 @@ function generateFilter(points) {
   );
 }
 
-function updateItem(items, update){
+function updateItem(items, update) {
   return items.map((item) => item.id === update.id ? update : item);
 }
 
-export { getRandomArrayElement, getRandomNumber, convertDate, formatDate, CamelCaseToKebabCase, filter, generateFilter, updateItem };
+function getWeightForNullDate(dateA, dateB) {
+  if (dateA === null && dateB === null) {
+    return 0;
+  }
+
+  if (dateA === null) {
+    return 1;
+  }
+
+  if (dateB === null) {
+    return -1;
+  }
+
+  return null;
+}
+
+function sortPointTime(pointA, pointB) {
+  const durationA = dayjs(pointA.dateTo).diff(dayjs(pointA.dateFrom));
+  const durationB = dayjs(pointB.dateTo).diff(dayjs(pointB.dateFrom));
+
+  return durationB - durationA;
+}
+
+function sortPointPrice(pointA, pointB) {
+  const priceA = pointA.basePrice || 0;
+  const priceB = pointB.basePrice || 0;
+
+  return priceB - priceA;
+}
+
+function sortPointDay(pointA, pointB) {
+  const weight = getWeightForNullDate(pointA.dateFrom, pointB.dateFrom);
+
+  if (weight !== null) {
+    return weight;
+  }
+
+  const dateDiff = dayjs(pointA.dateFrom).diff(dayjs(pointB.dateFrom));
+
+  if (dateDiff === 0) {
+    return pointA.type.localeCompare(pointB.type);
+  }
+
+  return dateDiff;
+}
+
+function calculateTripInfo(points, destinations, types) {
+  const totalPrice = points.reduce((sum, point) => {
+    const { type, offers: selectedOfferIds, basePrice } = point;
+    let pointTotal = basePrice;
+
+    if (selectedOfferIds?.length) {
+      const offersForType = types[type];
+      if (offersForType) {
+        selectedOfferIds.forEach((offerId) => {
+          const selectedOffer = offersForType.find((offer) => offer.id === offerId);
+          if (selectedOffer) {
+            pointTotal += selectedOffer.price;
+          }
+        });
+      }
+    }
+
+    return sum + pointTotal;
+  }, 0);
+
+  const destinationNames = points.map((point) => {
+    const destination = destinations.find((dest) => dest.id === point.destination);
+    return destination?.name || '';
+  }).filter(Boolean);
+
+  const route = [...new Set(destinationNames)].join(' — ');
+
+  let dates = '';
+  if (points.length > 0) {
+    const sortedPoints = [...points].sort((a, b) =>
+      new Date(a.dateFrom) - new Date(b.dateFrom)
+    );
+    const firstDate = sortedPoints[0].dateFrom;
+    const lastDate = sortedPoints[sortedPoints.length - 1].dateTo;
+    const firstFormatted = dayjs(firstDate).format('D MMM YYYY');
+    const lastFormatted = dayjs(lastDate).format('D MMM YYYY');
+
+    dates = `${firstFormatted}&nbsp;—&nbsp;${lastFormatted}`;
+  }
+
+  return {
+    totalPrice,
+    route,
+    dates
+  };
+}
+
+export { getRandomArrayElement, getRandomNumber, convertDate, formatDate, CamelCaseToKebabCase, filter, generateFilter, updateItem, sortPointDay, sortPointPrice, sortPointTime, calculateTripInfo };

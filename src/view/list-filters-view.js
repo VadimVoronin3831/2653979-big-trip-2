@@ -1,7 +1,7 @@
 import AbstractView from '../framework/view/abstract-view';
 
 function createListFiltersTemplate(filters, currentFilterType) {
-  if (!filters) {
+  if (filters.lenght === 0) {
     return '';
   }
 

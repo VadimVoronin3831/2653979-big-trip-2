@@ -17,15 +17,17 @@ export default class PointPresenter {
   #handleModeChange = null;
   #mode = Mode.DEFAULT;
 
-  constructor({ point, container, allDestinations, events }) {
+  constructor({ point, container, allDestinations, handlers }) {
     this.#point = point;
     this.#allDestinations = allDestinations;
     this.#container = container;
-    this.#handleDataChange = events.onDataChange;
-    this.#handleModeChange = events.onModeChange;
+    this.#handleDataChange = handlers.onDataChange;
+    this.#handleModeChange = handlers.onModeChange;
   }
 
   destroy() {
+    this.#eventItemComponent.element.remove();
+    this.#eventFormComponent.element.remove();
     this.#eventItemComponent = null;
     this.#eventFormComponent = null;
   }
@@ -54,11 +56,9 @@ export default class PointPresenter {
   };
 
   #handleFavoriteClick = () => {
-    const destinationId = this.#point.destination.id || this.#point.destination;
-
     this.#handleDataChange({
       ...this.#point,
-      destination: destinationId,
+      destination: this.#point.destination.id,
       isFavorite: !this.#point.isFavorite
     });
   };
@@ -75,10 +75,7 @@ export default class PointPresenter {
     }
   };
 
-  init(point) {
-    if (point) {
-      this.#point = point;
-    }
+  init() {
 
     let prevEventItemComponent = this.#eventItemComponent;
     let prevEventFormComponent = this.#eventFormComponent;
@@ -93,10 +90,10 @@ export default class PointPresenter {
 
     this.#eventFormComponent = new EventFormView(
       this.#point,
+      this.#allDestinations,
       {
         onCloseClick: this.#handleCloseFormClick,
-      },
-      this.#allDestinations
+      }
     );
 
     if (prevEventItemComponent === null || prevEventFormComponent === null) {

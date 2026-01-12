@@ -3,20 +3,23 @@ import dayjs from 'dayjs';
 import { convertDate } from '../utils.js';
 
 function createEventTemplate(point) {
-  const { offer, basePrice, dateFrom, dateTo, type, offers: selectedOfferIds, destination, isFavorite} = point;
+  const { offer, basePrice, dateFrom, dateTo, type, offers: selectedOfferIds, destination, isFavorite } = point;
+  const formatYersMounthDay = (date) => dayjs(date).format('YYYY-MM-DD');
+  const formatHourMinute = (date) => dayjs(date).format('HH:mm');
+  const formatYMDTHM = (date) => dayjs(date).format('HH:mm');
   return `
     <li class="trip-events__item">
       <div class="event">
-        <time class="event__date" datetime="${dayjs(dateFrom).format('YYYY-MM-DD')}">${dayjs(dateFrom).format('MMM DD')}</time>
+        <time class="event__date" datetime="${formatYersMounthDay(dateFrom)}">${dayjs(dateFrom).format('MMM DD')}</time>
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event ${type} icon">
         </div>
         <h3 class="event__title">${type} ${destination.name}</h3>
         <div class="event__schedule">
           <p class="event__time">
-            <time class="event__start-time" datetime="${dayjs(dateFrom).format('YYYY-MM-DDTHH:mm')}">${dayjs(dateFrom).format('HH:mm')}</time>
+            <time class="event__start-time" datetime="${formatYMDTHM(dateFrom)}">${formatHourMinute(dateFrom)}</time>
             &mdash;
-            <time class="event__end-time" datetime="${dayjs(dateTo).format('YYYY-MM-DDTHH:mm')}">${dayjs(dateTo).format('HH:mm')}</time>
+            <time class="event__end-time" datetime="${formatYMDTHM(dateTo)}">${formatHourMinute(dateTo)}</time>
           </p>
           <p class="event__duration">${convertDate(dateFrom, dateTo)}</p>
         </div>
@@ -24,7 +27,7 @@ function createEventTemplate(point) {
           &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
         </p>
         <h4 class="visually-hidden">Offers:</h4>
-        ${createOffers(offer.offers, selectedOfferIds)}
+        ${createOffersTemplate(offer.offers, selectedOfferIds)}
         <button class="event__favorite-btn ${isFavorite ? 'event__favorite-btn--active' : ''} " type="button">
           <span class="visually-hidden">Add to favorite</span>
           <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
@@ -39,8 +42,8 @@ function createEventTemplate(point) {
   `;
 }
 
-function createOffers(allOffers, selectedOfferIds) {
-  if (!selectedOfferIds || selectedOfferIds.length === 0) {
+function createOffersTemplate(allOffers, selectedOfferIds) {
+  if (selectedOfferIds.length === 0) {
     return '';
   }
 
@@ -64,13 +67,13 @@ function createOffers(allOffers, selectedOfferIds) {
 }
 
 export default class EventItemView extends AbstractView {
-  #handleClick = null;
+  #openClick = null;
   #favoriteClick = null;
   #point = null;
 
   #openFormHandler = (evt) => {
     evt.preventDefault();
-    this.#handleClick();
+    this.#openClick();
   };
 
   #favoriteClickHandler = (evt) => {
@@ -78,10 +81,10 @@ export default class EventItemView extends AbstractView {
     this.#favoriteClick();
   };
 
-  constructor(pointData, events) {
+  constructor(point, events) {
     super();
-    this.#point = pointData;
-    this.#handleClick = events.onOpenClick;
+    this.#point = point;
+    this.#openClick = events.onOpenClick;
     this.#favoriteClick = events.onFavoriteClick;
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#openFormHandler);
     this.element.querySelector('.event__favorite-btn').addEventListener('click', this.#favoriteClickHandler);
