@@ -5,6 +5,10 @@ function createListControlsTemplate() {
 }
 
 export default class ListEventsView extends AbstractView {
+  constructor() {
+    super();
+  }
+
   get template() {
     return createListControlsTemplate();
   }

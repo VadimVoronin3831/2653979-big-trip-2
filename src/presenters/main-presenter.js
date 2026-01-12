@@ -41,7 +41,7 @@ export default class MainPresenter {
 
   #handleFilterChange = (currentFilter) => {
     this.#currentFilterType = currentFilter;
-    this.#rerenderPoints();
+    this.#rerenderPoints(this.#currentFilterType);
   };
 
   #handlePointChange = (updatePoint) => {
@@ -56,23 +56,24 @@ export default class MainPresenter {
     const sortedPoints = this.#sortPoints(filteredPoints, this.#currentSortType);
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
-    this.#eventsComponents.clearElement();
-    const tripList = this.#eventsComponents.element;
+    this.#eventsComponents.element.remove();
+    this.#eventsComponents = new ListEventsView();
+    render(this.#eventsComponents, this.#mainContainer);
     sortedPoints.forEach((point) => {
-      this.#renderPoint(point, tripList);
+      this.#renderPoint(point, this.#eventsComponents.element);
     });
     this.#updateTripInfo(sortedPoints);
   }
 
-  #updateTripInfo(points) {
+  #updateTripInfo(points = this.#points) {
     const newTripInfoComponent = new TripInfoView(points, this.#destinations);
     if (this.#tripInfoComponent === null) {
       render(newTripInfoComponent, this.#headerContainer, 'afterbegin');
       this.#tripInfoComponent = newTripInfoComponent;
-    } else {
-      replace(newTripInfoComponent, this.#tripInfoComponent);
-      this.#tripInfoComponent = newTripInfoComponent;
+      return;
     }
+    replace(newTripInfoComponent, this.#tripInfoComponent);
+    this.#tripInfoComponent = newTripInfoComponent;
   }
 
   #renderPoint(point, tripList) {
@@ -87,7 +88,7 @@ export default class MainPresenter {
       },
       allDestinations: this.#destinations,
       container: tripList,
-      events: {
+      handlers: {
         onDataChange: this.#handlePointChange,
         onModeChange: this.#handleModeChange,
       }
@@ -99,7 +100,6 @@ export default class MainPresenter {
 
   #sortPoints(pointsToSort, sortType) {
     const sortedPoints = [...pointsToSort];
-
     switch (sortType) {
       case SortType.DAY:
         sortedPoints.sort(sortPointDay);
@@ -110,9 +110,7 @@ export default class MainPresenter {
       case SortType.PRICE:
         sortedPoints.sort(sortPointPrice);
         break;
-      default:
     }
-
     return sortedPoints;
   }
 
@@ -120,17 +118,9 @@ export default class MainPresenter {
     if (this.#currentSortType === sortType) {
       return;
     }
-    this.#sortPoint(sortType);
-  };
-
-  #sortPoint(sortType) {
-    if (this.#currentSortType === sortType) {
-      return;
-    }
-
     this.#currentSortType = sortType;
     this.#rerenderPoints();
-  }
+  };
 
 
   #renderSort() {

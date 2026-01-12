@@ -141,4 +141,51 @@ function sortPointDay(pointA, pointB) {
   return dateDiff;
 }
 
-export { getRandomArrayElement, getRandomNumber, convertDate, formatDate, CamelCaseToKebabCase, filter, generateFilter, updateItem, sortPointDay, sortPointPrice, sortPointTime };
+function calculateTripInfo(points, destinations, types) {
+  const totalPrice = points.reduce((sum, point) => {
+    const { type, offers: selectedOfferIds, basePrice } = point;
+    let pointTotal = basePrice;
+
+    if (selectedOfferIds?.length) {
+      const offersForType = types[type];
+      if (offersForType) {
+        selectedOfferIds.forEach((offerId) => {
+          const selectedOffer = offersForType.find((offer) => offer.id === offerId);
+          if (selectedOffer) {
+            pointTotal += selectedOffer.price;
+          }
+        });
+      }
+    }
+
+    return sum + pointTotal;
+  }, 0);
+
+  const destinationNames = points.map((point) => {
+    const destination = destinations.find((dest) => dest.id === point.destination);
+    return destination?.name || '';
+  }).filter(Boolean);
+
+  const route = [...new Set(destinationNames)].join(' — ');
+
+  let dates = '';
+  if (points.length > 0) {
+    const sortedPoints = [...points].sort((a, b) =>
+      new Date(a.dateFrom) - new Date(b.dateFrom)
+    );
+    const firstDate = sortedPoints[0].dateFrom;
+    const lastDate = sortedPoints[sortedPoints.length - 1].dateTo;
+    const firstFormatted = dayjs(firstDate).format('D MMM YYYY');
+    const lastFormatted = dayjs(lastDate).format('D MMM YYYY');
+
+    dates = `${firstFormatted}&nbsp;—&nbsp;${lastFormatted}`;
+  }
+
+  return {
+    totalPrice,
+    route,
+    dates
+  };
+}
+
+export { getRandomArrayElement, getRandomNumber, convertDate, formatDate, CamelCaseToKebabCase, filter, generateFilter, updateItem, sortPointDay, sortPointPrice, sortPointTime, calculateTripInfo };

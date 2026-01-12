@@ -56,7 +56,7 @@ function createEventFormTemplate(point, allDestinations) {
           </button>
         </header>
         <section class="event__details">
-          ${offer.offers && offer.offers.length > 0 ? `
+          ${offer.offers.length > 0 ? `
             <section class="event__section event__section--offers">
               <h3 class="event__section-title event__section-title--offers">Offers</h3>
               <div class="event__available-offers">
@@ -71,7 +71,7 @@ function createEventFormTemplate(point, allDestinations) {
               ${destination.description ? `
                 <p class="event__destination-description">${destination.description}</p>
               ` : ''}
-              ${destination.pictures && destination.pictures.length > 0 ? `
+              ${destination.pictures > 0 ? `
                 <div class="event__photos-container">
                   <div class="event__photos-tape">
                     ${destination.pictures.map((picture) =>
@@ -98,9 +98,9 @@ function createEventTypesListTemplate(currentType) {
 }
 
 function createDestinationsListTemplate(destinations) {
-  const uniqueNames = [...new Set(destinations.map((dest) => dest.name))];
+  // const uniqueNames = [...new Set(destinations.map((dest) => dest.name))];
 
-  return uniqueNames.map((name) => `<option value="${name}"></option>`).join('') || '';
+  return destinations.map((dest) => `<option value="${dest.name}"></option>`).join('') || '';
 }
 
 function createOffersListTemplate(allOffers, selectedOfferIds) {
@@ -134,11 +134,11 @@ export default class EventFormView extends AbstractView {
     this.#handleClick();
   };
 
-  constructor(pointData, events, allDestinations = []) {
+  constructor(point, allDestinations = [], handlers) {
     super();
-    this.#point = pointData;
+    this.#point = point;
     this.#allDestinations = allDestinations;
-    this.#handleClick = events.onCloseClick;
+    this.#handleClick = handlers.onCloseClick;
     this.element.querySelector('.event__save-btn').addEventListener('click', this.#closeFormHandler);
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeFormHandler);
   }
